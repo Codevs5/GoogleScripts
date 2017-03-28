@@ -3,25 +3,29 @@
   when a file in a Google Drive folder has been added, or modified.
 ***************************************************/
 
+
+
 var ROOT_FOLDER_ID = '***************';
 var SLACK_WEBHOOK = 'https://hooks.slack.com/services/************************';
 var CHANNEL = 'Channel_name';
 
+
 function checkForChangedFiles() {
     var folderList = listFolders(ROOT_FOLDER_ID) || [];
-  folderList = folderList.split(",");
+    folderList = folderList.split(",");
     for (var i = 0; i < folderList.length; i++) {
         checkForChangedFilesInFolder(folderList[i]);
     }
 }
 
-
+//Function to check which files have changed in the last 15 minutes
 function checkForChangedFilesInFolder(folder_id) {
     var folderID = '"' + folder_id + '"';
 
     var folderSearch = folderID + " " + "in parents";
     var timezone = Session.getScriptTimeZone();
     var today = new Date();
+
     var fifteenMinutesAgo = new Date(today.getTime() - 60 * 1000 * 15);
     var startTime = fifteenMinutesAgo.toISOString();
 
@@ -44,19 +48,20 @@ function checkForChangedFilesInFolder(folder_id) {
     }
 }
 
-
+//Makes the payload and calls the function to send the message
 function sendSlackNotification(changedFile) {
 
-  var payload = {
+    var payload = {
         "icon_emoji": ":rolled_up_newspaper:",
         "channel": "#" + CHANNEL,
         "username": "Nueva Entrada",
         "text": changedFile.fileOwner + " ha añadido un nuevo documento " + changedFile.fileName + " en " + changedFile.fileURL
     };
 
-  sendMessageToSlack(payload);
+    sendMessageToSlack(payload);
 }
 
+//Send message to slack
 function sendMessageToSlack(payload) {
     var url = SLACK_WEBHOOK;
     var options = {
@@ -66,7 +71,7 @@ function sendMessageToSlack(payload) {
     var response = UrlFetchApp.fetch(url, options);
 }
 
-
+//Get all the subfolders from the root folder
 function listFolders(id) {
     var parentFolder = DriveApp.getFolderById(id);
     var childFolders = parentFolder.getFolders();
@@ -75,21 +80,22 @@ function listFolders(id) {
         var child = childFolders.next();
         childs.push(getSubFolders(child));
     }
-      childs.push(id);
+    childs.push(id);
 
     return childs.join(",");
 }
 
+//Get all the subfolders recursively
 function getSubFolders(parent) {
     parent = parent.getId();
     var childFolder = DriveApp.getFolderById(parent).getFolders();
     var childs = [];
-  if (!childFolder.hasNext()) return parent;
+    if (!childFolder.hasNext()) return parent;
     while (childFolder.hasNext()) {
         var child = childFolder.next();
         var res = getSubFolders(child);
         childs.push(res);
     }
-  childs.push(parent);
+    childs.push(parent);
     return childs.join(",");
 }
