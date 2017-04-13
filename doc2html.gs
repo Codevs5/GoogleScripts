@@ -1,4 +1,8 @@
+var sourceDocID = '1KhP-Kqrzcg0jNJr1m7c7qj1DvpsVJniZ42z2AKwUCf4';
+var targetDocID = '1H0I4lRaAYcEGiwt_I4tIEGInruNmb_XTKSqJ5Ln2l6s';
 
+var folderImages = '0BySmMtYQO1OLV1JCcV9TZmctaVk';
+var baseUrl = "http://drive.google.com/uc?export=view&id=";
 
 function doc2html() {
     Logger.clear();
@@ -120,9 +124,7 @@ function parseText(child) {
             //que se joda al que le toque leerlo, será a mi yo descansado, da igual,
             //jodete Joseba
             var prevChar = parsedText.charAt(i - 1);
-            Logger.log('Ultimo: ' + prevChar)
             content = content.slice(0, content.length - 1) + '<a href="' + text.getLinkUrl(i) + '">' + prevChar;
-            //content += '<a href="'+ text.getLinkUrl(i) +'">';
         } else if (!isURL(text, i) && link.active) {
             link.active = !link.active;
             content += '</a>';
@@ -141,15 +143,18 @@ function parseImage(child, folderID, docName) {
     var img_name = "img_" + Date.now() + '.' + suffix;
     blob.setName(img_name);
     try {
-        var folder = DriveApp.getFolderById(folderImages);
+        var folder = DriveApp.getFolderById(folderID);
         var imageStored = folder.createFile(blob);
+        var pubUrl = baseUrl + imageStored.getId(); // the public URL
+        var height = child.getHeight();
+        var width = child.getWidth();
         imageStored.setName(img_name);
+        return '<img src="' + pubUrl + '" height="' + height + 'px" width="' + width + 'px"/>';
     } catch (e) {
         Logger.log('Problem storing the image');
         Logger.log(e);
     }
-    var src = 'https://googledrive.com/host/' + folderImages + '/' + img_name;
-    return '<img src="' + src + '"/>';
+
 }
 
 function closeHTMLTags(list) {
